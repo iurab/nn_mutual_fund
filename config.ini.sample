@@ -1,0 +1,10 @@
+[NN]
+url = https://markets.ft.com/data/funds/tearsheet/historical?s=LU1505916277:RON
+
+[Google]
+auth = file name
+excel = excel file
+sheet = sheet name
+
+[Loki]
+url = http://127.0.0.1/

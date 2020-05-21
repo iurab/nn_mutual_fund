@@ -10,7 +10,7 @@ beautifulsoup4 = "*"
 pylint = "*"
 requests = "*"
 gspread = "*"
-python-logging-loki = "*"
+rope = "*"
 
 [requires]
 python_version = "3.7"

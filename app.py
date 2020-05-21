@@ -2,42 +2,76 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import gspread
+import time
+import json
+import configparser
 
-url = 'https://markets.ft.com/data/funds/tearsheet/historical?s=LU1505916277:RON'
-path = '/html/body/div[3]/div[2]/section[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[1]/td[1]'
-page = requests.get(url)
+CONFIG = configparser.ConfigParser()
+CONFIG.read('config.ini')
 
-if page.status_code != 200:
-    print('Error in GET of page')
-    exit()
 
-soup = BeautifulSoup(page.text, 'html.parser')
+def get_new_price():
 
-# Get date for the first entry in table
-date_str = soup.body.tbody.tr.span.contents[0]
-# Get value for the first entry in table 
-value = soup.body.tbody.tr.contents[4].string
+    page = requests.get(CONFIG['NN']['url'])
 
-# Convert string date to object
-date = datetime.strptime(date_str, '%A, %B %d, %Y')
+    if page.status_code != 200:
+        message = 'HTTP GET was not successful for {}'.format(CONFIG['NN']['url'])
+        log('error', message)
+        exit()
 
-# Get and open spreadsheet
-gc = gspread.service_account(filename='service_account.json')
-sh = gc.open('NN RON Moderat')
-worksheet = sh.worksheet('Sheet')
+    soup = BeautifulSoup(page.text, 'html.parser')
 
-# Prepare row information
-c_date = date.strftime('%m/%d/%Y')
-c_price = value
-c_delta = '=B2-B3'
-c_percent = '=ROUND(C2/B3*100,3)'
-row = [c_date, c_price, c_delta, c_percent]
+    # Get date for the first entry in table
+    date_str = soup.body.tbody.tr.span.contents[0]
+    # Get value for the first entry in table
+    value = soup.body.tbody.tr.contents[4].string
 
-# Check if row already exists
-ex_date = worksheet.get('A2').first()
-if date.strftime('%A, %B %d, %Y') == ex_date:
-    print('Entry already exists')
-    exit()
+    # Convert string date to object
+    date = datetime.strptime(date_str, '%A, %B %d, %Y')
 
-# Insert new row
-worksheet.insert_row(row, index=2, value_input_option='USER_ENTERED')
+    # Get and open spreadsheet
+    gc = gspread.service_account(filename=CONFIG['Google']['auth'])
+    sh = gc.open(CONFIG['Google']['excel'])
+    worksheet = sh.worksheet(CONFIG['Google']['sheet'])
+
+    # Prepare row information
+    c_date = date.strftime('%m/%d/%Y')
+    c_price = value
+    c_delta = '=B2-B3'
+    c_percent = '=ROUND(C2/B3*100,3)'
+    row = [c_date, c_price, c_delta, c_percent]
+
+    # Check if row already exists
+    ex_date = worksheet.get('A2').first()
+    if date.strftime('%A, %B %d, %Y') == ex_date:
+        message = 'Entry already present: {}'.format(row[:2])
+        log('warning', message)
+        exit()
+
+    # Insert new row
+    worksheet.insert_row(row, index=2, value_input_option='USER_ENTERED')
+    message = 'New entry added: {}'.format(row[:2])
+    log('info', message)
+
+
+def log(level, message):
+    headers = {'Content-type': 'application/json'}
+
+    timestamp = int(time.time()) * 10**9
+
+    data = {
+        'streams': [{
+            'stream': {
+                'application': 'nn-mutual-fund',
+                'level': level,
+            },
+            'values': [[str(timestamp), message]]
+        }]
+    }
+    r = requests.put(CONFIG['Loki']['url'],
+                     headers=headers,
+                     data=json.dumps(data))
+
+
+if __name__ == '__main__':
+    get_new_price()
