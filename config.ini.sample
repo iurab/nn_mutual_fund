@@ -7,4 +7,5 @@ excel = excel file
 sheet = sheet name
 
 [Loki]
+app = name
 url = http://127.0.0.1/

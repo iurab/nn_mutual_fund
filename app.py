@@ -62,7 +62,7 @@ def log(level, message):
     data = {
         'streams': [{
             'stream': {
-                'application': 'nn-mutual-fund',
+                'app': CONFIG['Loki']['app'],
                 'level': level,
             },
             'values': [[str(timestamp), message]]
