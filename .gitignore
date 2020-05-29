@@ -2,4 +2,4 @@ service_account.json
 .vscode/*
 config.ini
 Pipfile.lock
-run
+run.sh
