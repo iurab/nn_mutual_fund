@@ -38,7 +38,7 @@ def get_new_price():
     c_date = date.strftime('%m/%d/%Y')
     c_price = value
     c_delta = '=B2-B3'
-    c_percent = '=ROUND(C2/B3*100,3)'
+    c_percent = '=ROUND(C2/B3*100,2)'
     row = [c_date, c_price, c_delta, c_percent]
 
     # Check if row already exists
