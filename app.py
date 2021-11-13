@@ -45,13 +45,14 @@ def get_new_price():
     ex_date = worksheet.get('A2').first()
     if date.strftime('%A, %B %d, %Y') == ex_date:
         message = 'Entry already present: {}'.format(row[:2])
-        log('warning', message)
+        # log('warning', message)
         exit()
 
     # Insert new row
     worksheet.insert_row(row, index=2, value_input_option='USER_ENTERED')
     message = 'New entry added: {}'.format(row[:2])
-    log('info', message)
+    # Loki doesn't exists anymore
+    # log('info', message)
 
 
 def log(level, message):
