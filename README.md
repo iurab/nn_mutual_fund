@@ -11,9 +11,5 @@ url = https://markets.ft.com/data/funds/tearsheet/historical?s=LU1505916277:RON
 auth = file name
 excel = excel file
 sheet = sheet name
-
-[Loki]
-app = name
-url = http://127.0.0.1/
 ```
 Don't forget to create the JSON file for Google authentification
